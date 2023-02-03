@@ -79,6 +79,16 @@ contract CrossChain is System, ICrossChain, IParamSubscriber{
     _;
   }
 
+  modifier notContract() {
+    require(!isContract(msg.sender), "contract is not allowed to be a relayer");
+    _;
+  }
+
+  modifier noProxy() {
+    require(msg.sender == tx.origin, "no proxy is allowed");
+    _;
+  }
+
   // | length   | prefix | sourceChainID| destinationChainID | channelID | sequence |
   // | 32 bytes | 1 byte | 2 bytes      | 2 bytes            |  1 bytes  | 8 bytes  |
   function generateKey(uint64 _sequence, uint8 _channelID) internal pure returns(bytes memory) {
@@ -200,8 +210,17 @@ contract CrossChain is System, ICrossChain, IParamSubscriber{
     return (true, packageType, relayFee, msgBytes);
   }
 
-  function handlePackage(bytes calldata payload, bytes calldata proof, uint64 height, uint64 packageSequence, uint8 channelId) onlyInit onlyRelayer
-      sequenceInOrder(packageSequence, channelId) blockSynced(height) channelSupported(channelId) headerInOrder(height, channelId) external {
+  function handlePackage(bytes calldata payload, bytes calldata proof, uint64 height, uint64 packageSequence, uint8 channelId)
+    notContract
+    noProxy
+    onlyInit
+    onlyRelayer
+    sequenceInOrder(packageSequence, channelId)
+    blockSynced(height)
+    channelSupported(channelId)
+    headerInOrder(height, channelId)
+    external
+  {
     bytes memory payloadLocal = payload; // fix error: stack too deep, try removing local variables
     bytes memory proofLocal = proof; // fix error: stack too deep, try removing local variables
     require(MerkleProof.validateMerkleProof(ILightClient(LIGHT_CLIENT_ADDR).getAppHash(height), STORE_NAME, generateKey(packageSequence, channelId), payloadLocal, proofLocal), "invalid merkle proof");

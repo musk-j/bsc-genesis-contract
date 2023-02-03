@@ -103,10 +103,7 @@ contract RelayerHub is IRelayerHub, System, IParamSubscriber {
         removeManager(msg.sender);
     }
 
-    function removeManager(address managerAddress) internal {
-        // check if the manager address already exists
-        require(relayManagersExistMap[managerAddress], "manager doesn't exist");
-
+    function removeManager(address managerAddress) internal onlyManager {
         address relayerAddress = managerToRelayer[managerAddress];
 
         delete (relayManagersExistMap[managerAddress]);
@@ -132,8 +129,6 @@ contract RelayerHub is IRelayerHub, System, IParamSubscriber {
     // updateRelayer() can be used to add relayer for the first time, update it in future and remove it
     // in case of removal we can simply update it to a non-existing account
     function updateRelayer(address relayerToBeAdded) public onlyManager {
-        require(!isContract(relayerToBeAdded), "contract is not allowed to be a relayer");
-
         address oldRelayer = managerToRelayer[msg.sender];
 
         if (relayerToBeAdded != address(0)) {
