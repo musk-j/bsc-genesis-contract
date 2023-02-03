@@ -119,7 +119,6 @@ contract RelayerHub is IRelayerHub, System, IParamSubscriber {
 
     function addManagerByGov(address managerToBeAdded) internal {
         require(!relayManagersExistMap[managerToBeAdded], "manager already exists");
-        require(!isContract(managerToBeAdded), "contract is not allowed to be a manager");
 
         relayManagersExistMap[managerToBeAdded] = true;
 
