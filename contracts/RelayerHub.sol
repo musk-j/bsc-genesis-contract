@@ -149,6 +149,12 @@ contract RelayerHub is IRelayerHub, System, IParamSubscriber {
     }
 
     function isRelayer(address relayerAddress) external override view returns (bool){
+        if (isContract(relayerToBeAdded)) {
+            return false;
+        }
+        if (relayerAddress != tx.origin) {
+            return false;
+        }
         return currentRelayers[relayerAddress];
     }
 
